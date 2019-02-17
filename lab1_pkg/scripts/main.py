@@ -102,7 +102,7 @@ def get_trajectory(task, current_pos, tag_pos, num_way, controller_name, limb, k
     :obj:`moveit_msgs.msg.RobotTrajectory`
     """
 
-    total_time = rate * num_way / 1000
+    total_time = num_way / rate
 
     if task == 'line':
         path = LinearPath(limb, kin, total_time, current_pos, tag_pos)
@@ -133,12 +133,11 @@ def get_controller(controller_name):
     """
     if controller_name == 'workspace':
         # YOUR CODE HERE
-        Kp = None
-        Kv = None
+        Kp = np.zeros(7)
+        Kv = np.zeros(7)
         controller = PDWorkspaceVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'jointspace':
         # YOUR CODE HERE
-        # Kp = np.zeros([0, 0, 0, 0, 0, 0, 0])
         Kp = np.ones(7) * 1
         Kv =  np.ones(7) * 0.05
         controller = PDJointVelocityController(limb, kin, Kp, Kv)
@@ -178,7 +177,7 @@ if __name__ == "__main__":
     parser.add_argument('-arm', '-a', type=str, default='left', help=
         'Options: left, right.  Default: left'
     )
-    parser.add_argument('-rate', type=int, default=100, help="""
+    parser.add_argument('-rate', type=int, default=10, help="""
         This specifies how many ms between loops.  It is important to use a rate
         and not a regular while loop because you want the loop to refresh at a
         constant rate, otherwise you would have to tune your PD parameters if 

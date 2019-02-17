@@ -194,8 +194,8 @@ class Controller:
         target_velocities: nx7 or nx6 :obj:`numpy.ndarray`
             target joint or workspace velocities for each time in times
         """
-        directory='/home/cc/ee106b/sp19/class/ee106b-abj/Documents/'
-
+        # directory='/home/cc/ee106b/sp19/class/ee106b-aai/Documents/'
+        directory = '.'
         print('ACTUAL_POSITIONS: ', actual_positions[0])
         print('ERRORS: ', errors[0])
 
@@ -348,11 +348,12 @@ class Controller:
         # For timing
         start_t = rospy.Time.now()
         r = rospy.Rate(rate)
+        
 
         prev_t = (rospy.Time.now() - start_t).to_sec()
         prev_error_js = vec(0,0,0,0,0,0,0) # Initially set previous error to zero
         prev_error_ws = vec(0,0,0,0,0,0) # Initially set previous error to zero
-
+        r.sleep()
         while not rospy.is_shutdown():
             # Find the time from start
             t = (rospy.Time.now() - start_t).to_sec()
@@ -378,12 +379,26 @@ class Controller:
                 current_index
             ) = self.interpolate_path(path, t, current_index)
 
-            error_js = target_velocity - current_velocity_js
-            d_error_js = (error_js - prev_error_js) / (t - prev_t)
+            print('t, prev_t', t, prev_t)
 
-            target_velocity_ws = np.matmul(jacobian, target_velocity)
-            error_ws = target_velocity_ws - current_velocity_ws
-            d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
+
+            if len(target_velocity) == 3:
+
+
+                # then it's in workspace             
+                error_js = 0 # we do not care about it
+                d_error_js = 0 # we do not care about it
+                error_ws = target_velocity - current_velocity_ws
+                d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
+            else:
+                # then it's in jointspace
+                error_js = target_velocity - current_velocity_js
+                d_error_js = (error_js - prev_error_js) / (t - prev_t)
+
+                target_velocity_ws = np.matmul(jacobian, target_velocity)
+                error_ws = target_velocity_ws - current_velocity_ws
+                d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
+
 
             #WARNING: at this point we might have to change the orientation of the target_position (cf the comments in PDWorkspaceVelocityController)
             

@@ -35,13 +35,13 @@ class MotionPath:
         self.current_pos = current_pos
         self.target_pos = target_pos
 
-        '''
         times = np.linspace(0, total_time, 100)
         pos = np.array([0, 0, 0])
         for t in times:
             pos = np.vstack((pos, self.target_position(t)))
         pos = pos[1:-1, :]
         #print(pos)
+        '''
         plt.figure()
         plt.grid(True)
         plt.title('Path')
@@ -288,7 +288,6 @@ class LinearPath(MotionPath):
         3x' :obj:`numpy.ndarray`
             desired velocity in workspace coordinates of the end effector
         """
-        print((self.target_pos - self.current_pos) / self.total_time)
         return (self.target_pos - self.current_pos) / self.total_time
 
     def target_acceleration(self, time):
