@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Starter script for lab1. 
+Starter script for lab1.
 Author: Chris Correa
 """
 import numpy as np
@@ -41,7 +41,7 @@ class MotionPath:
             pos = np.vstack((pos, self.target_position(t)))
         pos = pos[1:-1, :]
         #print(pos)
-        '''
+
         plt.figure()
         plt.grid(True)
         plt.title('Path')
@@ -50,8 +50,8 @@ class MotionPath:
         plt.scatter(pos[:, 0], pos[:, 1], color='r', marker='.')
         plt.axis('equal')
         plt.show()
-        '''
         
+
 
     def target_position(self, time):
         """
@@ -59,7 +59,7 @@ class MotionPath:
 
         Parameters
         ----------
-        time : float        
+        time : float
 
         Returns
         -------
@@ -147,7 +147,7 @@ class MotionPath:
         jointspace : bool
             What kind of trajectory.  Joint space points are 7x' and describe the
             angle of each arm.  Workspace points are 3x', and describe the x,y,z
-            position of the end effector.  
+            position of the end effector.
         """
         traj = JointTrajectory()
         traj.joint_names = self.limb.joint_names()
@@ -177,7 +177,7 @@ class MotionPath:
         """
         takes a discrete point in time, and puts the position, velocity, and
         acceleration into a ROS JointTrajectoryPoint() to be put into a
-        RobotTrajectory.  
+        RobotTrajectory.
 
         Parameters
         ----------
@@ -185,7 +185,7 @@ class MotionPath:
         jointspace : bool
             What kind of trajectory.  Joint space points are 7x' and describe the
             angle of each arm.  Workspace points are 3x', and describe the x,y,z
-            position of the end effector.  
+            position of the end effector.
 
         Returns
         -------
@@ -263,7 +263,7 @@ class LinearPath(MotionPath):
 
         Parameters
         ----------
-        time : float        
+        time : float
 
         Returns
         -------
@@ -333,7 +333,7 @@ class CircularPath(MotionPath):
 
         Parameters
         ----------
-        time : float        
+        time : float
 
         Returns
         -------
@@ -400,7 +400,7 @@ class MultiplePaths(MotionPath):
     Remember to call the constructor of MotionPath
 
     You can implement multiple paths a couple ways.  The way I chose when I took
-    the class was to create several different paths and pass those into the 
+    the class was to create several different paths and pass those into the
     MultiplePaths object, which would determine when to go onto the next path.
     """
 
@@ -430,7 +430,7 @@ class MultiplePaths(MotionPath):
 
         Parameters
         ----------
-        time : float        
+        time : float
 
         Returns
         -------
@@ -450,7 +450,7 @@ class MultiplePaths(MotionPath):
         #print('total time:{}, number of positions:{}, t_segment:{}'.format(self.total_time, len(self.pos), t_segment))
         #print('time:{}, t:{}, segment:{}, target:{}'.format(time, t, segment, pos_end[1]))
         return (pos_end - pos_start) / t_segment * t + pos_start
-        
+
     def target_velocity(self, time):
         """
         Returns the arm's desired velocity in workspace coordinates

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Starter script for lab1. 
+Starter script for lab1.
 Author: Chris Correa, Valmik Prabhu
 """
 
@@ -25,7 +25,7 @@ try:
 except:
     pass
 
-from baxter_pykdl.baxter_pykdl import baxter_kinematics 
+from baxter_pykdl.baxter_pykdl import baxter_kinematics
 
 NUM_JOINTS = 7
 
@@ -50,17 +50,17 @@ class Controller:
 
     def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
         """
-        makes a call to the robot to move according to it's current position and the desired position 
-        according to the input path and the current time. Each Controller below extends this 
-        class, and implements this accordingly.  
+        makes a call to the robot to move according to it's current position and the desired position
+        according to the input path and the current time. Each Controller below extends this
+        class, and implements this accordingly.
 
         Parameters
         ----------
-        target_position : 7x' or 6x' :obj:`numpy.ndarray` 
+        target_position : 7x' or 6x' :obj:`numpy.ndarray`
             desired positions
-        target_velocity : 7x' or 6x' :obj:`numpy.ndarray` 
+        target_velocity : 7x' or 6x' :obj:`numpy.ndarray`
             desired velocities
-        target_acceleration : 7x' or 6x' :obj:`numpy.ndarray` 
+        target_acceleration : 7x' or 6x' :obj:`numpy.ndarray`
             desired accelerations
         """
         pass
@@ -80,14 +80,14 @@ class Controller:
 
         Returns
         -------
-        target_position : 7x' or 6x' :obj:`numpy.ndarray` 
+        target_position : 7x' or 6x' :obj:`numpy.ndarray`
             desired positions
-        target_velocity : 7x' or 6x' :obj:`numpy.ndarray` 
+        target_velocity : 7x' or 6x' :obj:`numpy.ndarray`
             desired velocities
-        target_acceleration : 7x' or 6x' :obj:`numpy.ndarray` 
+        target_acceleration : 7x' or 6x' :obj:`numpy.ndarray`
             desired accelerations
         current_index : int
-            waypoint index at which search was terminated 
+            waypoint index at which search was terminated
         """
 
         # a very small number (should be much smaller than rate)
@@ -171,9 +171,9 @@ class Controller:
     def plot_results(
         self,
         times,
-        actual_positions, 
-        actual_velocities, 
-        target_positions, 
+        actual_positions,
+        actual_velocities,
+        target_positions,
         target_velocities,
         errors,
         d_errors
@@ -196,8 +196,8 @@ class Controller:
         """
         # directory='/home/cc/ee106b/sp19/class/ee106b-aai/Documents/'
         directory = '.'
-        print('ACTUAL_POSITIONS: ', actual_positions[0])
-        print('ERRORS: ', errors[0])
+        #print('ACTUAL_POSITIONS: ', actual_positions[0])
+        #print('ERRORS: ', errors[0])
 
         # Make everything an ndarray
         times = np.array(times)
@@ -205,6 +205,8 @@ class Controller:
         actual_velocities = np.array(actual_velocities)
         target_positions = np.array(target_positions)
         target_velocities = np.array(target_velocities)
+        errors = np.array(errors)
+        d_errors = np.array(d_errors)
 
         # Find the actual workspace positions and velocities
         actual_workspace_positions = np.zeros((len(times), 3))
@@ -236,45 +238,45 @@ class Controller:
             # print len(times), actual_positions.shape()
             joint_num = len(self._limb.joint_names())
             for joint in range(joint_num):
+                '''
                 plt.subplot(joint_num,2,2*joint+1)
                 plt.plot(times, actual_positions[:,joint], label='Actual')
                 plt.plot(times, target_positions[:,joint], label='Desired')
                 plt.xlabel("Time (t)")
-                plt.ylabel("Joint " + str(joint) + " Position Error")
+                plt.ylabel(str(joint) + " pos")
+                '''
 
-                plt.subplot(joint_num,2,2*joint+2)
+                plt.subplot(joint_num,1,joint+1)
                 plt.plot(times, actual_velocities[:,joint], label='Actual')
                 plt.plot(times, target_velocities[:,joint], label='Desired')
                 #plt.plot(times, errors[:,joint], label='e')
                 #plt.plot(times, d_errors[:,joint], label='de')
-                plt.xlabel("Time (t)")
-                plt.ylabel("Joint " + str(joint) + " Velocity Error")
+                #plt.xlabel("Time (t)")
+                plt.ylabel(str(joint) + " vel")
 
             print "Close the plot window to continue"
-            plt.tight_layout()
+            #plt.tight_layout()
             plt.savefig(directory+self.controller_name+'_jsplot.png')
             plt.show()
 
-            '''
+
             # error plots
             plt.figure()
+            plt.grid(True)
+            plt.axvline(color='k')
+            plt.axhline(color='k')
+            plt.xlabel("Time (t)")
+            plt.ylabel('Velocity Errors')
             for joint in range(joint_num):
-                plt.subplot(joint_num,2,2*joint+1)
-                plt.grid(True)
-                plt.plot(times, errors[:,joint], label='e')
+                plt.plot(times, errors[:,joint], label='joint '+str(joint))
                 plt.xlabel("Time (t)")
-                plt.ylabel(str(joint) + " e")
-
-                plt.subplot(joint_num,2,2*joint+2)
-                plt.plot(times, d_errors[:,joint], label='de')
-                plt.xlabel("Time (t)")
-                plt.ylabel(str(joint) + " de")
-
-            print "Close the plot window to continue"
+                plt.ylabel('Velocity Errors')
+            plt.legend()
             plt.tight_layout()
-            plt.savefig(directory+self.controller_name+'_err_jsplot.png')
+            #plt.savefig(directory+self.controller_name+'_err_jsplot.png')
             plt.show()
-            '''
+            print "Close the plot window to continue"
+
 
         else:
             # it's workspace
@@ -307,7 +309,7 @@ class Controller:
 
     def execute_path(self, path, rate=200, timeout=None, log=False):
         """
-        takes in a path and moves the baxter in order to follow the path.  
+        takes in a path and moves the baxter in order to follow the path.
 
         Parameters
         ----------
@@ -348,7 +350,7 @@ class Controller:
         # For timing
         start_t = rospy.Time.now()
         r = rospy.Rate(rate)
-        
+
 
         prev_t = (rospy.Time.now() - start_t).to_sec()
         prev_error_js = vec(0,0,0,0,0,0,0) # Initially set previous error to zero
@@ -373,19 +375,19 @@ class Controller:
 
             # Get the desired position, velocity, and effort
             (
-                target_position, 
-                target_velocity, 
-                target_acceleration, 
+                target_position,
+                target_velocity,
+                target_acceleration,
                 current_index
             ) = self.interpolate_path(path, t, current_index)
 
-            print('t, prev_t', t, prev_t)
+            #print('t, prev_t', t, prev_t)
 
 
             if len(target_velocity) == 3:
 
 
-                # then it's in workspace             
+                # then it's in workspace
                 error_js = 0 # we do not care about it
                 d_error_js = 0 # we do not care about it
                 error_ws = target_velocity - current_velocity_ws
@@ -401,7 +403,7 @@ class Controller:
 
 
             #WARNING: at this point we might have to change the orientation of the target_position (cf the comments in PDWorkspaceVelocityController)
-            
+
 
             # For plotting
             if log:
@@ -432,9 +434,9 @@ class Controller:
             #try:
             self.plot_results(
                 times,
-                actual_positions, 
-                actual_velocities, 
-                target_positions, 
+                actual_positions,
+                actual_velocities,
+                target_positions,
                 target_velocities,
                 errors_js,
                 d_errors_js
@@ -445,8 +447,8 @@ class Controller:
 
     def follow_ar_tag(self, tag, rate=200, timeout=None, log=False):
         """
-        takes in an AR tag number and follows it with the baxter's arm.  You 
-        should look at execute_path() for inspiration on how to write this. 
+        takes in an AR tag number and follows it with the baxter's arm.  You
+        should look at execute_path() for inspiration on how to write this.
 
         Parameters
         ----------
@@ -509,20 +511,20 @@ class PDWorkspaceVelocityController(Controller):
 
     def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
         """
-        makes a call to the robot to move according to it's current position and the desired position 
-        according to the input path and the current time. Each Controller below extends this 
+        makes a call to the robot to move according to it's current position and the desired position
+        according to the input path and the current time. Each Controller below extends this
         class, and implements this accordingly. This method should call
-        self._kin.forward_psition_kinematics() and self._kin.forward_velocity_kinematics() to get 
-        the current workspace position and velocity and self._limb.set_joint_velocities() to set 
-        the joint velocity to something.  you may have to look at 
-        http://docs.ros.org/diamondback/api/kdl/html/python/geometric_primitives.html to convert the 
-        output of forward_velocity_kinematics() to a numpy array.  You may find joint_array_to_dict() 
-        in utils.py useful 
+        self._kin.forward_psition_kinematics() and self._kin.forward_velocity_kinematics() to get
+        the current workspace position and velocity and self._limb.set_joint_velocities() to set
+        the joint velocity to something.  you may have to look at
+        http://docs.ros.org/diamondback/api/kdl/html/python/geometric_primitives.html to convert the
+        output of forward_velocity_kinematics() to a numpy array.  You may find joint_array_to_dict()
+        in utils.py useful
 
-        MAKE SURE TO CONVERT QUATERNIONS TO EULER IN forward_position_kinematics().  
+        MAKE SURE TO CONVERT QUATERNIONS TO EULER IN forward_position_kinematics().
         you can use tf.transformations.euler_from_quaternion()
 
-        your target orientation should be (0,0,0) in euler angles and (0,1,0,0) as a quaternion.  
+        your target orientation should be (0,0,0) in euler angles and (0,1,0,0) as a quaternion.
 
         Parameters
         ----------
@@ -533,7 +535,7 @@ class PDWorkspaceVelocityController(Controller):
 
         v_ws = target_vel + (np.matmul(self.Kp, error_ws) + np.matmul(self.Kv, d_error_ws))
 
-        J_pseudoinv =  self._kin.jacobian_pseudo_inverse(current_position) 
+        J_pseudoinv =  self._kin.jacobian_pseudo_inverse(current_position)
 
         v_js = np.matmul(v_ws, J_pseudoinv)
 
@@ -544,9 +546,9 @@ class PDWorkspaceVelocityController(Controller):
 
 class PDJointVelocityController(Controller):
     """
-    Look at the comments on the Controller class above.  The difference between this controller and the 
+    Look at the comments on the Controller class above.  The difference between this controller and the
     PDJointVelocityController is that this controller turns the desired workspace position and velocity
-    into desired JOINT position and velocity.  Then it compares the difference between the baxter's 
+    into desired JOINT position and velocity.  Then it compares the difference between the baxter's
     current JOINT position and velocity and desired JOINT position and velocity to come up with a
     joint velocity command and sends that to the baxter.  notice the shape of Kp and Kv
     """
@@ -566,8 +568,8 @@ class PDJointVelocityController(Controller):
 
     def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
         """
-        makes a call to the robot to move according to it's current position and the desired position 
-        according to the input path and the current time. Each Controller below extends this 
+        makes a call to the robot to move according to it's current position and the desired position
+        according to the input path and the current time. Each Controller below extends this
         class, and implements this accordingly. This method should call
         self._limb.joint_angle and self._limb.joint_velocity to get the current joint position and velocity
         and self._limb.set_joint_velocities() to set the joint velocity to something.  You may find
@@ -602,8 +604,8 @@ class PDJointTorqueController(Controller):
 
     def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
         """
-        makes a call to the robot to move according to it's current position and the desired position 
-        according to the input path and the current time. Each Controller below extends this 
+        makes a call to the robot to move according to it's current position and the desired position
+        according to the input path and the current time. Each Controller below extends this
         class, and implements this accordingly. This method should call
         self._limb.joint_angle and self._limb.joint_velocity to get the current joint position and velocity
         and self._limb.set_joint_velocities() to set the joint velocity to something.  You may find
