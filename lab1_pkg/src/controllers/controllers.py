@@ -385,15 +385,22 @@ class Controller:
 
 
             if len(target_velocity) == 3:
-
-
                 # then it's in workspace
+
                 error_js = 0 # we do not care about it
                 d_error_js = 0 # we do not care about it
+                target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], -np.pi, 0, -np.pi]).reshape((6,1))
+                current_velocity_ws = current_velocity_ws.reshape(6,1)
+                
+                prev_error_ws = prev_error_ws.reshape(6,1)
+
                 error_ws = target_velocity - current_velocity_ws
                 d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
+
+            
             else:
                 # then it's in jointspace
+
                 error_js = target_velocity - current_velocity_js
                 d_error_js = (error_js - prev_error_js) / (t - prev_t)
 
@@ -533,12 +540,14 @@ class PDWorkspaceVelocityController(Controller):
         target_acceleration: 6x' ndarray of desired accelerations
         """
 
-        v_ws = target_vel + (np.matmul(self.Kp, error_ws) + np.matmul(self.Kv, d_error_ws))
+        v_ws = target_velocity + (np.matmul(self.Kp, error_ws) + np.matmul(self.Kv, d_error_ws))
 
-        J_pseudoinv =  self._kin.jacobian_pseudo_inverse(current_position)
 
-        v_js = np.matmul(v_ws, J_pseudoinv)
+        print('v_ws', v_ws)
 
+        J_pseudoinv =  self._kin.jacobian_pseudo_inverse()
+
+        v_js = np.matmul(J_pseudoinv, v_ws)
 
         self._limb.set_joint_velocities(joint_array_to_dict(v_js, self._limb))
 
@@ -581,9 +590,14 @@ class PDJointVelocityController(Controller):
         target_velocity: 7x' :obj:`numpy.ndarray` of desired velocities
         target_acceleration: 7x' :obj:`numpy.ndarray` of desired accelerations
         """
+
+        print('target_velocity.shape', target_velocity.shape)
+
+
         v = target_velocity + (np.matmul(self.Kp, error_js) + np.matmul(self.Kv, d_error_js))
 
-        # self._limb.set_joint_velocities(joint_array_to_dict(target_velocity, self._limb))
+        print('v.shape', v.shape)
+
         self._limb.set_joint_velocities(joint_array_to_dict(v, self._limb))
         #raise NotImplementedError
 
