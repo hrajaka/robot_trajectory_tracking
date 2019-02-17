@@ -372,7 +372,6 @@ class Controller:
             jacobian = self._kin.jacobian()
             current_velocity_ws = np.matmul(jacobian, current_velocity_js)
 
-
             # Get the desired position, velocity, and effort
             (
                 target_position,
@@ -389,7 +388,7 @@ class Controller:
 
                 error_js = 0 # we do not care about it
                 d_error_js = 0 # we do not care about it
-                target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], -np.pi, 0, -np.pi]).reshape((6,1))
+                target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], 0, 0, 0]).reshape((6,1))
                 current_velocity_ws = current_velocity_ws.reshape(6,1)
                 
                 prev_error_ws = prev_error_ws.reshape(6,1)
@@ -407,9 +406,6 @@ class Controller:
                 target_velocity_ws = np.matmul(jacobian, target_velocity)
                 error_ws = target_velocity_ws - current_velocity_ws
                 d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
-
-
-            #WARNING: at this point we might have to change the orientation of the target_position (cf the comments in PDWorkspaceVelocityController)
 
 
             # For plotting

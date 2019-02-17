@@ -133,7 +133,8 @@ def get_controller(controller_name):
     """
     if controller_name == 'workspace':
         # YOUR CODE HERE
-        Kp = np.zeros(6)
+        Kp = np.array([0.7, 0.5, 0.7, 0.7, 0.7, 0.7])
+        Kv = np.ones(7) * 0.01
         Kv = np.zeros(6)
         controller = PDWorkspaceVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'jointspace':
@@ -218,8 +219,10 @@ if __name__ == "__main__":
         tag_pos = [lookup_tag(marker) for marker in args.ar_marker]
     except:
         print('Could not find AR tag')
-        tag_pos = vec(0.75, 0.302, 0.169)
-        # tag_pos = vec(0.65, 0.75, 0.45)
+        # tag_pos = vec(0.75, 0.302, 0.169)
+        # tag_pos = vec(0.65, 0.20, 0.15)
+
+        tag_pos = vec(0.70, 0.28, 0.04) #the easy one
     print('Target position:', tag_pos)
 
     # Get an appropriate RobotTrajectory for the task (circular, linear, or square)
