@@ -195,7 +195,7 @@ class Controller:
             target joint or workspace velocities for each time in times
         """
         # directory='/home/cc/ee106b/sp19/class/ee106b-aai/Documents/'
-        directory = '.'
+        directory = '/home/cc/ee106b/sp19/class/ee106b-aai/ros_workspaces/lab1_ws/src/robot_trajectory_tracking'
         #print('ACTUAL_POSITIONS: ', actual_positions[0])
         #print('ERRORS: ', errors[0])
 
@@ -257,7 +257,7 @@ class Controller:
             print "Close the plot window to continue"
             #plt.tight_layout()
             plt.savefig(directory+self.controller_name+'_jsplot.png')
-            plt.show()
+            # plt.show()
 
 
             # error plots
@@ -273,8 +273,8 @@ class Controller:
                 plt.ylabel('Velocity Errors')
             plt.legend()
             plt.tight_layout()
-            #plt.savefig(directory+self.controller_name+'_err_jsplot.png')
-            plt.show()
+            plt.savefig(directory+self.controller_name+'_err_jsplot.png')
+            # plt.show()
             print "Close the plot window to continue"
 
 

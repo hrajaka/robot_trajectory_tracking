@@ -37,19 +37,38 @@ class MotionPath:
 
         times = np.linspace(0, total_time, 100)
         pos = np.array([0, 0, 0])
+        vel = np.array([0, 0, 0])
         for t in times:
             pos = np.vstack((pos, self.target_position(t)))
+            vel = np.vstack((vel, self.target_velocity(t)))
+
         pos = pos[1:-1, :]
+        vel = vel[0:-1, :]
         #print(pos)
 
-        plt.figure()
-        plt.grid(True)
-        plt.title('Path')
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.scatter(pos[:, 0], pos[:, 1], color='r', marker='.')
-        plt.axis('equal')
-        plt.show()
+        # plt.figure()
+        # plt.grid(True)
+        # plt.title('Path')
+        # plt.xlabel('x')
+        # plt.ylabel('y')
+        # plt.scatter(pos[:, 0], pos[:, 1], color='r', marker='.')
+        # plt.axis('equal')
+        # plt.show()
+
+        # plt.figure()
+        # plt.grid(True)
+        # plt.title('Path')
+        # plt.xlabel('x')
+        # plt.ylabel('y')
+        # print(vel[:, 0].shape)
+        # print(times.shape)
+        # plt.scatter(times, vel[:, 0], color='r', marker='.', label='vx')
+        # plt.scatter(times, vel[:, 1], color='b', marker='.', label='vy')
+        # plt.axvline(color='k')
+        # plt.axhline(color='k')
+        # plt.legend()
+        # plt.axis('equal')
+        # plt.show()
         
 
 
