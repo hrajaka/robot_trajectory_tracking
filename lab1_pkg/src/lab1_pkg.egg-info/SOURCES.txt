@@ -1,0 +1,16 @@
+setup.py
+src/controllers/__init__.py
+src/controllers/controllers.py
+src/joint_trajectory_action_server/__init__.py
+src/joint_trajectory_action_server/bezier.py
+src/joint_trajectory_action_server/joint_trajectory_action_server.py
+src/lab1_pkg.egg-info/PKG-INFO
+src/lab1_pkg.egg-info/SOURCES.txt
+src/lab1_pkg.egg-info/dependency_links.txt
+src/lab1_pkg.egg-info/top_level.txt
+src/paths/__init__.py
+src/paths/path_generator.py
+src/paths/paths.py
+src/paths/paths_antoine.py
+src/utils/__init__.py
+src/utils/utils.py
