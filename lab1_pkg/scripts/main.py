@@ -141,8 +141,9 @@ def get_controller(controller_name):
     """
     if controller_name == 'workspace':
         # YOUR CODE HERE
-        Kp = np.array([0.7, 0.5, 0.7, 0.7, 0.7, 0.7]) * 3
-        Kv = np.ones(6) * 0.09
+        Kp = np.array([0.7, 0.5, 0.7, 0.7, 0.7, 0.7])
+        Kv = np.ones(7) * 0.01
+        Kv = np.zeros(6)
         controller = PDWorkspaceVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'jointspace':
         # YOUR CODE HERE
@@ -153,8 +154,8 @@ def get_controller(controller_name):
         controller = PDJointVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'torque':
         # YOUR CODE HERE
-        Kp = np.ones(7) * 100
-        Kv = np.ones(7) * 0
+        Kp = None
+        Kv = None
         controller = PDJointTorqueController(limb, kin, Kp, Kv)
     elif controller_name == 'open_loop':
         controller = FeedforwardJointVelocityController(limb, kin)
@@ -187,7 +188,7 @@ if __name__ == "__main__":
     parser.add_argument('-arm', '-a', type=str, default='left', help=
         'Options: left, right.  Default: left'
     )
-    parser.add_argument('-rate', type=int, default=50, help="""
+    parser.add_argument('-rate', type=int, default=200, help="""
         This specifies how many ms between loops.  It is important to use a rate
         and not a regular while loop because you want the loop to refresh at a
         constant rate, otherwise you would have to tune your PD parameters if
@@ -197,8 +198,8 @@ if __name__ == "__main__":
         """after how many seconds should the controller terminate if it hasn\'t already.
         Default: None"""
     )
-    
-    parser.add_argument('-num_way', type=int, default=1000, help=
+
+    parser.add_argument('-num_way', type=int, default=100, help=
         'How many waypoints for the :obj:`moveit_msgs.msg.RobotTrajectory`.  Default: 300'
     )
     parser.add_argument('--moveit', action='store_true', help=
@@ -228,8 +229,8 @@ if __name__ == "__main__":
         tag_pos = [lookup_tag(marker) for marker in args.ar_marker]
     except:
         print('Could not find AR tag')
-        tag_pos = vec(0.75, 0.302, 0.169)
-        #tag_pos = vec(0.65, 0.20, 0.15)
+        # tag_pos = vec(0.75, 0.302, 0.169)
+        tag_pos = vec(0.65, 0.20, 0.15)
 
         # tag_pos = vec(0.70, 0.28, 0.04) #the easy one
     print('Target position:', tag_pos)
