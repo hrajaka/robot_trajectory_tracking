@@ -31,77 +31,9 @@ class MotionPath:
         """
         self.limb = limb
         self.kin = kin
-        self.total_time = total_time
+        self.total_time = float(total_time)
         self.current_pos = current_pos
         self.target_pos = target_pos
-
-        # times = np.linspace(0, total_time, 100)
-        # pos = np.array([0, 0, 0])
-        # vel = np.array([0, 0, 0])
-        # acc = np.array([0, 0, 0])
-        # for t in times:
-        #     pos = np.vstack((pos, self.target_position(t)))
-        #     vel = np.vstack((vel, self.target_velocity(t)))
-        #     acc = np.vstack((acc, self.target_acceleration(t)))
-
-        # pos = pos[1:, :]
-        # vel = vel[1:, :]
-        # acc = acc[1:, :]
-
-        # plt.figure()
-        # plt.grid(True)
-        # plt.title('Path ({})'.format(total_time))
-        # plt.xlabel('x')
-        # plt.ylabel('y')
-        # plt.plot(pos[:, 0], pos[:, 1], color='r', marker='.')
-        # plt.axis('equal')
-        # plt.axvline(color='k')
-        # plt.axhline(color='k')
-
-        # plt.show()
-
-        # plt.figure()
-        # plt.grid(True)
-        # plt.title('Path')
-        # plt.plot(times, pos[:, 0], color='r', marker='.', label='x')
-        # plt.plot(times, pos[:, 1], color='b', marker='.', label='y')
-        # plt.legend()
-        # plt.show()
-
-        # plt.figure()
-        # plt.grid(True)
-        # plt.title('Path')
-        # plt.xlabel('x')
-        # plt.ylabel('y')
-        # print(vel[:, 0].shape)
-        # print(times.shape)
-        # plt.scatter(times, vel[:, 0], color='r', marker='.', label='vx')
-        # plt.scatter(times, vel[:, 1], color='b', marker='.', label='vy')
-        # plt.axvline(color='k')
-        # plt.axhline(color='k')
-        # plt.legend()
-        # plt.show()
-
-        # plt.figure()
-        # plt.grid(True)
-        # plt.xlabel('speed')
-        # plt.ylabel('t')
-        # plt.plot(np.sqrt(vel[:, 0]**2 + vel[:, 1]**2 + vel[:, 2]**2), color='r', marker='.', label='vx')
-        # plt.axvline(color='k')
-        # plt.axhline(color='k')
-        # plt.legend()
-        # plt.show()
-        
-        # plt.figure()
-        # plt.grid(True)
-        # plt.xlabel('acc')
-        # plt.ylabel('t')
-        # plt.plot(np.sqrt(acc[:, 0]**2 + acc[:, 1]**2 + acc[:, 2]**2), color='r', marker='.', label='vx')
-        # plt.axvline(color='k')
-        # plt.axhline(color='k')
-        # plt.legend()
-        # plt.show()
-
 
     def target_position(self, time):
         """
@@ -289,6 +221,75 @@ class MotionPath:
                 )
         return theta
 
+    def plot_me(self):
+
+        times = np.linspace(0, self.total_time, 100)
+        pos = np.array([0, 0, 0])
+        vel = np.array([0, 0, 0])
+        acc = np.array([0, 0, 0])
+        for t in times:
+            pos = np.vstack((pos, self.target_position(t)))
+            vel = np.vstack((vel, self.target_velocity(t)))
+            acc = np.vstack((acc, self.target_acceleration(t)))
+
+        pos = pos[1:, :]
+        vel = vel[1:, :]
+        acc = acc[1:, :]
+
+        plt.figure()
+        plt.grid(True)
+        plt.title('Path ({})'.format(self.total_time))
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.scatter(pos[:, 0], pos[:, 1], color='r', marker='.')
+        plt.axis('equal')
+        plt.axvline(color='k')
+        plt.axhline(color='k')
+
+        plt.show()
+
+        plt.figure()
+        plt.grid(True)
+        plt.title('Path')
+        plt.plot(times, pos[:, 0], color='r', marker='.', label='x')
+        plt.plot(times, pos[:, 1], color='b', marker='.', label='y')
+        plt.legend()
+        plt.show()
+
+        # plt.figure()
+        # plt.grid(True)
+        # plt.title('Path')
+        # plt.xlabel('x')
+        # plt.ylabel('y')
+        # print(vel[:, 0].shape)
+        # print(times.shape)
+        # plt.scatter(times, vel[:, 0], color='r', marker='.', label='vx')
+        # plt.scatter(times, vel[:, 1], color='b', marker='.', label='vy')
+        # plt.axvline(color='k')
+        # plt.axhline(color='k')
+        # plt.legend()
+        # plt.show()
+
+        # plt.figure()
+        # plt.grid(True)
+        # plt.xlabel('speed')
+        # plt.ylabel('t')
+        # plt.plot(np.sqrt(vel[:, 0]**2 + vel[:, 1]**2 + vel[:, 2]**2), color='r', marker='.', label='vx')
+        # plt.axvline(color='k')
+        # plt.axhline(color='k')
+        # plt.legend()
+        # plt.show()
+        
+        # plt.figure()
+        # plt.grid(True)
+        # plt.xlabel('acc')
+        # plt.ylabel('t')
+        # plt.plot(np.sqrt(acc[:, 0]**2 + acc[:, 1]**2 + acc[:, 2]**2), color='r', marker='.', label='vx')
+        # plt.axvline(color='k')
+        # plt.axhline(color='k')
+        # plt.legend()
+        # plt.show()
+
 
 class LinearPath(MotionPath):
     def __init__(self, limb, kin, total_time, current_pos, target_pos):
@@ -298,8 +299,7 @@ class LinearPath(MotionPath):
         Parameters
         ----------
         """
-        MotionPath.__init__(self, limb, kin, total_time,
-                            current_pos, target_pos)
+        MotionPath.__init__(self, limb, kin, total_time, current_pos, target_pos)
 
 
     def target_position(self, time):
@@ -413,6 +413,8 @@ class CircularPath(MotionPath):
         3x' :obj:`numpy.ndarray`
            desired x,y,z position in workspace coordinates of the end effector
         """
+
+
         if time < self.t1: # Linear move to center
             # return (self.target_pos - self.current_pos) / self.t1 * time + self.current_pos
             return self.L1.target_position(time)
