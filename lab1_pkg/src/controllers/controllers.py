@@ -420,7 +420,6 @@ class Controller:
             jacobian = self._kin.jacobian()
             current_velocity_ws = np.matmul(jacobian, current_velocity_js)
 
-
             # Get the desired position, velocity, and effort
             (
                 target_position,
@@ -434,6 +433,7 @@ class Controller:
             alpha = 0.1
             if len(target_velocity) == 3:
                 # then it's in workspace
+
                 error_js = 0 # we do not care about it
                 d_error_js = 0 # we do not care about it
 
@@ -444,8 +444,15 @@ class Controller:
                     d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
                 else:
                     d_error_ws = 0
+
+                target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], 0, 0, 0]).reshape((6,1))
+                current_velocity_ws = current_velocity_ws.reshape(6,1)
+
+                prev_error_ws = prev_error_ws.reshape(6,1)
+
             else:
                 # then it's in jointspace
+
                 error_js = target_velocity - current_velocity_js
                 error_js = alpha * error_js + (1 - alpha) * prev_error_js # Filter
 
@@ -462,9 +469,6 @@ class Controller:
                     d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
                 else:
                     d_error_ws = 0
-
-            #WARNING: at this point we might have to change the orientation of the target_position (cf the comments in PDWorkspaceVelocityController)
-
 
             # For plotting
             if log:
@@ -590,12 +594,14 @@ class PDWorkspaceVelocityController(Controller):
         target_acceleration: 6x' ndarray of desired accelerations
         """
 
-        v_ws = target_vel + (np.matmul(self.Kp, error_ws) + np.matmul(self.Kv, d_error_ws))
+        v_ws = target_velocity + (np.matmul(self.Kp, error_ws) + np.matmul(self.Kv, d_error_ws))
 
-        J_pseudoinv =  self._kin.jacobian_pseudo_inverse(current_position)
 
-        v_js = np.matmul(v_ws, J_pseudoinv)
+        print('v_ws', v_ws)
 
+        J_pseudoinv =  self._kin.jacobian_pseudo_inverse()
+
+        v_js = np.matmul(J_pseudoinv, v_ws)
 
         self._limb.set_joint_velocities(joint_array_to_dict(v_js, self._limb))
 
@@ -638,9 +644,10 @@ class PDJointVelocityController(Controller):
         target_velocity: 7x' :obj:`numpy.ndarray` of desired velocities
         target_acceleration: 7x' :obj:`numpy.ndarray` of desired accelerations
         """
+
+
         v = target_velocity + (np.matmul(self.Kp, error_js) + np.matmul(self.Kv, d_error_js))
 
-        # self._limb.set_joint_velocities(joint_array_to_dict(target_velocity, self._limb))
         self._limb.set_joint_velocities(joint_array_to_dict(v, self._limb))
         #raise NotImplementedError
 

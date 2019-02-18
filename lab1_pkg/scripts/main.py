@@ -102,19 +102,27 @@ def get_trajectory(task, current_pos, tag_pos, num_way, controller_name, limb, k
     :obj:`moveit_msgs.msg.RobotTrajectory`
     """
 
-    total_time = num_way / rate
+    total_time = float(num_way) / float(rate)
 
     if task == 'line':
         path = LinearPath(limb, kin, total_time, current_pos, tag_pos)
     elif task == 'circle':
         path = CircularPath(limb, kin, total_time, current_pos, tag_pos)
     elif task == 'square':
-        positions = []
+        positions = [current_pos]
         positions.append(tag_pos)
         positions.append(tag_pos + vec(0.1, 0, 0.05))
         positions.append(positions[-1] + vec(0, 0.1, -0.1))
         positions.append(positions[-1] + vec(-0.1, 0, 0.05))
-        path = MultiplePaths(limb, kin, total_time, current_pos, positions)
+
+        linear_paths = []
+        linear_paths.append(LinearPath(limb, kin, total_time, positions[0], positions[1]) )
+        linear_paths.append(LinearPath(limb, kin, total_time, positions[1], positions[2]) )
+        linear_paths.append(LinearPath(limb, kin, total_time, positions[2], positions[3]) )
+        linear_paths.append(LinearPath(limb, kin, total_time, positions[3], positions[4]) )
+        linear_paths.append(LinearPath(limb, kin, total_time, positions[4], positions[1]) )
+
+        path = MultiplePaths(limb, kin, linear_paths)
     else:
         raise ValueError('task {} not recognized'.format(task))
     return path.to_robot_trajectory(num_way, controller_name!='workspace')
@@ -133,14 +141,16 @@ def get_controller(controller_name):
     """
     if controller_name == 'workspace':
         # YOUR CODE HERE
-        Kp = np.zeros(7)
-        Kv = np.zeros(7)
+        Kp = np.array([0.7, 0.5, 0.7, 0.7, 0.7, 0.7])
+        Kv = np.ones(7) * 0.01
+        Kv = np.zeros(6)
         controller = PDWorkspaceVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'jointspace':
         # YOUR CODE HERE
-        Kp = np.array([10,10,10,10,10,10,10])
-        # Kv =  np.ones(7) * 0.0
-        Kv =  np.ones(7) * 0
+
+        Kp = np.array([0.5, 0.65, 0.65, 0.65, 0.1, 0.1, 0.65])
+        Kv = np.ones(7) * 0.01
+
         controller = PDJointVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'torque':
         # YOUR CODE HERE
@@ -178,7 +188,7 @@ if __name__ == "__main__":
     parser.add_argument('-arm', '-a', type=str, default='left', help=
         'Options: left, right.  Default: left'
     )
-    parser.add_argument('-rate', type=int, default=50, help="""
+    parser.add_argument('-rate', type=int, default=200, help="""
         This specifies how many ms between loops.  It is important to use a rate
         and not a regular while loop because you want the loop to refresh at a
         constant rate, otherwise you would have to tune your PD parameters if
@@ -188,6 +198,7 @@ if __name__ == "__main__":
         """after how many seconds should the controller terminate if it hasn\'t already.
         Default: None"""
     )
+    
     parser.add_argument('-num_way', type=int, default=100, help=
         'How many waypoints for the :obj:`moveit_msgs.msg.RobotTrajectory`.  Default: 300'
     )
@@ -218,8 +229,10 @@ if __name__ == "__main__":
         tag_pos = [lookup_tag(marker) for marker in args.ar_marker]
     except:
         print('Could not find AR tag')
-        #tag_pos = vec(0.8, 0.26, 0.17)
-        tag_pos = vec(0.75   , 0.30275934, 0.16972506)
+        # tag_pos = vec(0.75, 0.302, 0.169)
+        tag_pos = vec(0.65, 0.20, 0.15)
+
+        # tag_pos = vec(0.70, 0.28, 0.04) #the easy one
     print('Target position:', tag_pos)
 
     # Get an appropriate RobotTrajectory for the task (circular, linear, or square)
