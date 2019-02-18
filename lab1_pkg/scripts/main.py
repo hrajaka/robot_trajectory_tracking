@@ -106,8 +106,11 @@ def get_trajectory(task, current_pos, tag_pos, num_way, controller_name, limb, k
 
     if task == 'line':
         path = LinearPath(limb, kin, total_time, current_pos, tag_pos)
+        path.plot_me()
     elif task == 'circle':
         path = CircularPath(limb, kin, total_time, current_pos, tag_pos)
+        path.plot_me()
+
     elif task == 'square':
         positions = [current_pos]
         positions.append(tag_pos)
@@ -123,6 +126,8 @@ def get_trajectory(task, current_pos, tag_pos, num_way, controller_name, limb, k
         linear_paths.append(LinearPath(limb, kin, total_time, positions[4], positions[1]) )
 
         path = MultiplePaths(limb, kin, linear_paths)
+        path.plot_me()
+
     else:
         raise ValueError('task {} not recognized'.format(task))
     return path.to_robot_trajectory(num_way, controller_name!='workspace')
@@ -198,7 +203,7 @@ if __name__ == "__main__":
         Default: None"""
     )
     
-    parser.add_argument('-num_way', type=int, default=1000, help=
+    parser.add_argument('-num_way', type=int, default=1100, help=
         'How many waypoints for the :obj:`moveit_msgs.msg.RobotTrajectory`.  Default: 300'
     )
     parser.add_argument('--moveit', action='store_true', help=
