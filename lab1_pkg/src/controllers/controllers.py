@@ -587,12 +587,8 @@ class PDJointVelocityController(Controller):
         target_acceleration: 7x' :obj:`numpy.ndarray` of desired accelerations
         """
 
-        print('target_velocity.shape', target_velocity.shape)
-
 
         v = target_velocity + (np.matmul(self.Kp, error_js) + np.matmul(self.Kv, d_error_js))
-
-        print('v.shape', v.shape)
 
         self._limb.set_joint_velocities(joint_array_to_dict(v, self._limb))
         #raise NotImplementedError
