@@ -437,10 +437,10 @@ class Controller:
             if len(target_velocity) == 3:
                 # then it's in workspace
 
-                error_js = 0 # we do not care about it
-                d_error_js = 0 # we do not care about it
-                error_position_js = 0 # we do not care about it
-                d_error_position_js = 0 # we do not care about it
+                error_js = None # we do not care about it
+                d_error_js = None # we do not care about it
+                error_position_js = None # we do not care about it
+                d_error_position_js = None # we do not care about it
 
                 target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], 0, 0, 0]).reshape(6,1)
                 current_velocity_ws = current_velocity_ws.reshape(6,1)
@@ -464,7 +464,7 @@ class Controller:
                 error_js = alpha * error_js + (1 - alpha) * prev_error_js # Filter
 
                 error_position_js = target_position - current_position_js
-                # error_position_js = alpha * error_position_js + (1 - alpha) * prev_error_position_js # Filter
+                #error_position_js = alpha * error_position_js + (1 - alpha) * prev_error_position_js # Filter
 
 
                 if t != prev_t:
@@ -552,7 +552,7 @@ class FeedforwardJointVelocityController(Controller):
         Controller.__init__(self, limb, kin)
         self.controller_name = 'ff_js_vel'
 
-    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
+    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js):
         """
         Parameters
         ----------
@@ -584,7 +584,7 @@ class PDWorkspaceVelocityController(Controller):
         self.Kv = np.diag(Kv)
         self.controller_name = 'pd_ws_vel'
 
-    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
+    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js):
         """
         makes a call to the robot to move according to it's current position and the desired position
         according to the input path and the current time. Each Controller below extends this
@@ -638,7 +638,7 @@ class PDJointVelocityController(Controller):
         self.Kv = np.diag(Kv)
         self.controller_name = 'pd_js_vel'
 
-    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
+    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js):
         """
         makes a call to the robot to move according to it's current position and the desired position
         according to the input path and the current time. Each Controller below extends this

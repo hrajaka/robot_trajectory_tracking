@@ -53,7 +53,7 @@ class MotionPath:
         # plt.title('Path ({})'.format(total_time))
         # plt.xlabel('x')
         # plt.ylabel('y')
-        # plt.scatter(pos[:, 0], pos[:, 1], color='r', marker='.')
+        # plt.plot(pos[:, 0], pos[:, 1], color='r', marker='.')
         # plt.axis('equal')
         # plt.axvline(color='k')
         # plt.axhline(color='k')
@@ -80,7 +80,6 @@ class MotionPath:
         # plt.axvline(color='k')
         # plt.axhline(color='k')
         # plt.legend()
-        # plt.axis('equal')
         # plt.show()
 
         # plt.figure()
@@ -387,14 +386,18 @@ class CircularPath(MotionPath):
         ----------
         ????? You're going to have to fill these in how you see fit
         """
-        MotionPath.__init__(self, limb, kin, total_time,
-                            current_pos, target_pos)
+
 
         self.r = 0.1 # radius of circle centered around target_pos
         self.t1 = 5 # Time allocated to reach center of circle
-        self.t2 = 7 # Time allocated to reach radius away from circle
-        if total_time < self.t1 + self.t2 + 1:
+        self.t2 = self.t1 + 5 # Time allocated to reach radius away from circle
+        if total_time < self.t1 + self.t2 + 5:
             raise ValueError('Not enough time given')
+
+        self.L1 = LinearPath(limb, kin, self.t1, current_pos, target_pos)
+        end2 = target_pos + np.array([self.r, 0, 0])
+        self.L2 = LinearPath(limb, kin, self.t2 - self.t1, target_pos, end2)
+        MotionPath.__init__(self, limb, kin, total_time, current_pos, target_pos)
 
 
     def target_position(self, time):
@@ -411,12 +414,48 @@ class CircularPath(MotionPath):
            desired x,y,z position in workspace coordinates of the end effector
         """
         if time < self.t1: # Linear move to center
-            return (self.target_pos - self.current_pos) / self.t1 * time + self.current_pos
+            # return (self.target_pos - self.current_pos) / self.t1 * time + self.current_pos
+            return self.L1.target_position(time)
+            '''
+            target = self.target_pos
+            current = self.current_pos
+            cruise_speed = (current - target) / self.t1 * 10./9
+
+            t = time - 0 
+            if t <= (1./10)*self.t1:                
+                return self.current_pos + 10*cruise_speed*0.5*t**2/self.t1
+
+
+            elif t <= (9./10)*self.t1:
+                return self.current_pos + 10*cruise_speed*0.5*(self.t1/10)**2/self.t1 + cruise_speed*(t-self.t1/10)
+            else:
+                return self.current_pos + 10*cruise_speed*0.5*(self.t1/10)**2/self.t1 + cruise_speed*(8*self.t1/10) + 10*cruise_speed*(t-0.5*t*t/self.t1 - 9 * self.t1/10 + 0.5*(9*self.t1/10)**2/self.t1)
+            '''
+
         elif time < self.t2: # Linear move r away from center
-            return np.array([self.r, 0, 0]) / (self.t2 - self.t1) * (time - self.t1) + self.target_pos
+            return self.L2.target_position(time - self.t1)
+            # return np.array([self.r, 0, 0]) / (self.t2 - self.t1) * (time - self.t1) + self.target_pos
+            '''
+            target = self.target_pos + np.array([self.r, 0, 0])
+            current = self.target_pos
+            cruise_speed = (current - target) / self.t1 * 10./9
+
+            t = time - self.t1 
+            if t <= (1./10)*self.t2:                
+                return self.current_pos + 10*cruise_speed*0.5*t**2/self.t2
+
+
+            elif t <= (9./10)*self.t2:
+                return self.current_pos + 10*cruise_speed*0.5*(self.t2/10)**2/self.t2 + cruise_speed*(t-self.t2/10)
+            else:
+                return self.current_pos + 10*cruise_speed*0.5*(self.t2/10)**2/self.t2 + cruise_speed*(8*self.t2/10) + 10*cruise_speed*(t-0.5*t*t/self.t2 - 9 * self.t2/10 + 0.5*(9*self.t2/10)**2/self.t2)
+            '''
         else: # Single circle around for time total_time - 5 - 2
             theta = 2 * np.pi * (time - self.t2) / (self.total_time - self.t2)
             return self.r * np.array([np.cos(theta), np.sin(theta), 0]) + self.target_pos
+
+
+
 
     def target_velocity(self, time):
         """
@@ -434,12 +473,50 @@ class CircularPath(MotionPath):
            desired x,y,z velocity in workspace coordinates of the end effector
         """
         if time < self.t1: # Linear move to center
-            return (self.target_pos - self.current_pos) / self.t1
+            return self.L1.target_velocity(time)
+            '''
+            # return (self.target_pos - self.current_pos) / self.t1
+
+            target = self.target_pos
+            current = self.current_pos
+            cruise_speed = (current - target) / self.t1 * 10./9
+
+            t = time - 0 
+            if t <= (1./10)*self.t1:                
+                return 10*t/self.t1*cruise_speed
+            elif t <= (9./10)*self.t1:
+                return cruise_speed
+            else:
+                return (1 - 10*(t - (9./10)*self.t1)/self.t1 )*cruise_speed
+            '''
+
+
+
         elif time < self.t2: # Linear move r away from center
-            return (self.target_pos + np.array([self.r, 0, 0])) / (self.t2 - self.t1)
+            return self.L2.target_velocity(time - self.t1)
+            '''
+            # return (self.target_pos + np.array([self.r, 0, 0])) / (self.t2 - self.t1)
+
+            target = self.target_pos + np.array([self.r, 0, 0])
+            current = self.target_pos
+            cruise_speed = (current - target) / self.t1 * 10./9
+
+            t = time - self.t1 
+            if t <= (1./10)*self.t2:                
+                return 10*t/self.t2*cruise_speed
+            elif t <= (9./10)*self.t2:
+                return cruise_speed
+            else:
+                return (1 - 10*(t - (9./10)*self.t2)/self.t2 )*cruise_speed
+            '''
+
+
+
         else: # Single circle around for time total_time - 5 - 2
             theta = 2 * np.pi * (time - self.t2) / (self.total_time - self.t2)
             return 2 * np.pi / (self.total_time - self.t2) * self.r * np.array([-1*np.sin(theta), np.cos(theta), 0])
+
+
 
     def target_acceleration(self, time):
         """
@@ -457,9 +534,44 @@ class CircularPath(MotionPath):
            desired acceleration in workspace coordinates of the end effector
         """
         if time < self.t1: # Linear move to center
-            return np.array([0, 0, 0])
+            return self.L1.target_acceleration(time)
+            '''
+            # return np.array([0, 0, 0])
+
+            target = self.target_pos
+            current = self.current_pos
+            cruise_speed = (current - target) / self.t1 * 10./9
+
+            t = time - 0 
+            if t <= (1./10)*self.t1:
+                return cruise_speed / self.t1
+            elif t <= (9./10)*self.t1:
+                return np.array([0,0,0])
+            else:
+                return -1*cruise_speed / self.t1
+            '''
+
+
+
         elif time < self.t2: # Linear move r away from center
-            return np.array([0, 0, 0])
+            return self.L2.target_acceleration(time - self.t1)
+            '''
+            # return np.array([0, 0, 0])
+
+            target = self.target_pos + np.array([self.r, 0, 0])
+            current = self.target_pos
+            cruise_speed = (current - target) / self.t2 * 10./9
+
+            t = time - self.t1 
+
+            if t <= (1./10)*self.t2:
+                return cruise_speed / self.t2
+            elif t <= (9./10)*self.t2:
+                return np.array([0,0,0])
+            else:
+                return -1*cruise_speed / self.t2
+            '''
+
         else: # Single circle around for time total_time - 5 - 2
             theta = 2 * np.pi * (time - self.t2) / (self.total_time - self.t2)
             return (2 * np.pi / (self.total_time - self.t2))**2 * self.r * np.array([-1*np.cos(theta), -1*np.cos(theta), 0])
