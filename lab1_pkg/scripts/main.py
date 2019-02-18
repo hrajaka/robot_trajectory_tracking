@@ -114,7 +114,7 @@ def get_trajectory(task, current_pos, tag_pos, num_way, controller_name, limb, k
         positions.append(tag_pos + vec(0.1, 0, 0.05))
         positions.append(positions[-1] + vec(0, 0.1, -0.1))
         positions.append(positions[-1] + vec(-0.1, 0, 0.05))
-        
+
         linear_paths = []
         linear_paths.append(LinearPath(limb, kin, total_time, positions[0], positions[1]) )
         linear_paths.append(LinearPath(limb, kin, total_time, positions[1], positions[2]) )
@@ -146,6 +146,7 @@ def get_controller(controller_name):
         controller = PDWorkspaceVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'jointspace':
         # YOUR CODE HERE
+
         Kp = np.array([0.5, 0.65, 0.65, 0.65, 0.1, 0.1, 0.65])
         Kv = np.ones(7) * 0.01
 
@@ -196,7 +197,8 @@ if __name__ == "__main__":
         """after how many seconds should the controller terminate if it hasn\'t already.
         Default: None"""
     )
-    parser.add_argument('-num_way', type=int, default=300, help=
+    
+    parser.add_argument('-num_way', type=int, default=100, help=
         'How many waypoints for the :obj:`moveit_msgs.msg.RobotTrajectory`.  Default: 300'
     )
     parser.add_argument('--moveit', action='store_true', help=

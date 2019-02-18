@@ -166,7 +166,55 @@ class Controller:
         zero_vel_dict = joint_array_to_dict(np.zeros(NUM_JOINTS), self._limb)
         self._limb.set_joint_velocities(zero_vel_dict)
 
-
+    def log_results(
+        self,
+        times,
+        actual_positions,
+        actual_velocities,
+        target_positions,
+        target_velocities,
+        errors,
+        d_errors
+    ):
+        print('\nLOGGING RESULTS\n')
+        times = np.array(times)
+        print('times: ', times.shape)
+        labels='t'
+        actual_positions = np.array(actual_positions)
+        print('actual_positions: ', actual_positions.shape)
+        for i in range(actual_positions.shape[1]):
+            labels = labels + ',q' + str(i)
+        actual_velocities = np.array(actual_velocities)
+        print('actual_velocities: ', actual_velocities.shape)
+        for i in range(actual_velocities.shape[1]):
+            labels = labels + ',qv' + str(i)
+        target_positions = np.array(target_positions)
+        print('target_positions: ', target_positions.shape)
+        for i in range(target_positions.shape[1]):
+            labels = labels + ',q_t' + str(i)
+        target_velocities = np.array(target_velocities)
+        print('target_velocities: ', target_velocities.shape)
+        for i in range(target_velocities.shape[1]):
+            labels = labels + ',qv_t' + str(i)
+        errors = np.array(errors)
+        print('errors: ', errors.shape)
+        for i in range(errors.shape[1]):
+            labels = labels + ',e' + str(i)
+        d_errors = np.array(d_errors)
+        print('d_errors: ', d_errors.shape)
+        for i in range(d_errors.shape[1]):
+            labels = labels + ',de' + str(i)
+        print('logging')
+        data = np.hstack([np.array([times]).T,
+                          actual_positions,
+                          actual_velocities,
+                          target_positions,
+                          target_velocities,
+                          errors,
+                          d_errors])
+        print('data: ', data.shape)
+        filename = 'data.csv'
+        np.savetxt(filename, data, fmt='%f', delimiter=',', header=labels, comments='')
 
     def plot_results(
         self,
@@ -382,31 +430,45 @@ class Controller:
 
             #print('t, prev_t', t, prev_t)
 
-
+            alpha = 0.1
             if len(target_velocity) == 3:
                 # then it's in workspace
 
                 error_js = 0 # we do not care about it
                 d_error_js = 0 # we do not care about it
-                target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], 0, 0, 0]).reshape((6,1))
-                current_velocity_ws = current_velocity_ws.reshape(6,1)
-                
-                prev_error_ws = prev_error_ws.reshape(6,1)
 
                 error_ws = target_velocity - current_velocity_ws
-                d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
+                error_ws = alpha * error_ws + (1 - alpha) * prev_error_ws # Filter
 
-            
+                if t != prev_t:
+                    d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
+                else:
+                    d_error_ws = 0
+
+                target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], 0, 0, 0]).reshape((6,1))
+                current_velocity_ws = current_velocity_ws.reshape(6,1)
+
+                prev_error_ws = prev_error_ws.reshape(6,1)
+
             else:
                 # then it's in jointspace
 
                 error_js = target_velocity - current_velocity_js
-                d_error_js = (error_js - prev_error_js) / (t - prev_t)
+                error_js = alpha * error_js + (1 - alpha) * prev_error_js # Filter
+
+                if t != prev_t:
+                    d_error_js = (error_js - prev_error_js) / (t - prev_t)
+                else:
+                    d_error_js = 0
 
                 target_velocity_ws = np.matmul(jacobian, target_velocity)
                 error_ws = target_velocity_ws - current_velocity_ws
-                d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
+                error_ws = alpha * error_ws + (1 - alpha) * prev_error_ws # Filter
 
+                if t != prev_t:
+                    d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
+                else:
+                    d_error_ws = 0
 
             # For plotting
             if log:
@@ -433,9 +495,7 @@ class Controller:
             prev_error_ws = error_ws
 
         if log:
-
-            #try:
-            self.plot_results(
+            self.log_results(
                 times,
                 actual_positions,
                 actual_velocities,
@@ -444,8 +504,6 @@ class Controller:
                 errors_js,
                 d_errors_js
             )
-            #except:
-            #    pass
         return True
 
     def follow_ar_tag(self, tag, rate=200, timeout=None, log=False):
