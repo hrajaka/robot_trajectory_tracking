@@ -63,8 +63,8 @@ class MotionPath:
         # plt.figure()
         # plt.grid(True)
         # plt.title('Path')
-        # plt.plot( times, pos[:, 0], color='r', marker='.', label='x')
-        # plt.plot( times, pos[:, 1], color='b', marker='.', label='y')
+        # plt.plot(times, pos[:, 0], color='r', marker='.', label='x')
+        # plt.plot(times, pos[:, 1], color='b', marker='.', label='y')
         # plt.legend()
         # plt.show()
 

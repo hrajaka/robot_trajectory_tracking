@@ -48,7 +48,7 @@ class Controller:
         self._kin = kin
         self.controller_name = None
 
-    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
+    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js):
         """
         makes a call to the robot to move according to it's current position and the desired position
         according to the input path and the current time. Each Controller below extends this
@@ -286,13 +286,13 @@ class Controller:
             # print len(times), actual_positions.shape()
             joint_num = len(self._limb.joint_names())
             for joint in range(joint_num):
-                '''
+                
                 plt.subplot(joint_num,2,2*joint+1)
                 plt.plot(times, actual_positions[:,joint], label='Actual')
                 plt.plot(times, target_positions[:,joint], label='Desired')
                 plt.xlabel("Time (t)")
                 plt.ylabel(str(joint) + " pos")
-                '''
+                
 
                 plt.subplot(joint_num,1,joint+1)
                 plt.plot(times, actual_velocities[:,joint], label='Actual')
@@ -401,8 +401,11 @@ class Controller:
 
 
         prev_t = (rospy.Time.now() - start_t).to_sec()
-        prev_error_js = vec(0,0,0,0,0,0,0) # Initially set previous error to zero
-        prev_error_ws = vec(0,0,0,0,0,0) # Initially set previous error to zero
+        prev_error_js = np.zeros(7) # Initially set previous error to zero
+        prev_error_ws = np.zeros((6,1)) # Initially set previous error to zero
+        prev_error_position_js = np.zeros(7) # Initially set previous error to zero
+
+
         r.sleep()
         while not rospy.is_shutdown():
             # Find the time from start
@@ -436,6 +439,11 @@ class Controller:
 
                 error_js = 0 # we do not care about it
                 d_error_js = 0 # we do not care about it
+                error_position_js = 0 # we do not care about it
+                d_error_position_js = 0 # we do not care about it
+
+                target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], 0, 0, 0]).reshape(6,1)
+                current_velocity_ws = current_velocity_ws.reshape(6,1)
 
                 error_ws = target_velocity - current_velocity_ws
                 error_ws = alpha * error_ws + (1 - alpha) * prev_error_ws # Filter
@@ -443,12 +451,11 @@ class Controller:
                 if t != prev_t:
                     d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
                 else:
-                    d_error_ws = 0
-
-                target_velocity = np.array([target_velocity[0], target_velocity[1], target_velocity[2], 0, 0, 0]).reshape((6,1))
-                current_velocity_ws = current_velocity_ws.reshape(6,1)
+                    d_error_js = np.zeros(6)
 
                 prev_error_ws = prev_error_ws.reshape(6,1)
+
+
 
             else:
                 # then it's in jointspace
@@ -456,10 +463,16 @@ class Controller:
                 error_js = target_velocity - current_velocity_js
                 error_js = alpha * error_js + (1 - alpha) * prev_error_js # Filter
 
+                error_position_js = target_position - current_position_js
+                # error_position_js = alpha * error_position_js + (1 - alpha) * prev_error_position_js # Filter
+
+
                 if t != prev_t:
                     d_error_js = (error_js - prev_error_js) / (t - prev_t)
+                    d_error_position_js = (error_position_js - prev_error_position_js) / (t - prev_t)
                 else:
-                    d_error_js = 0
+                    d_error_js = np.zeros(7)
+                    d_error_position_js = np.zeros(7)
 
                 target_velocity_ws = np.matmul(jacobian, target_velocity)
                 error_ws = target_velocity_ws - current_velocity_ws
@@ -468,7 +481,7 @@ class Controller:
                 if t != prev_t:
                     d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
                 else:
-                    d_error_ws = 0
+                    d_error_ws = np.zeros(7)
 
             # For plotting
             if log:
@@ -481,7 +494,7 @@ class Controller:
                 d_errors_js.append(d_error_js)
 
             # Run controller
-            self.step_control(target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws)
+            self.step_control(target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js)
 
             # Sleep for a bit (to let robot move)
             r.sleep()
@@ -493,9 +506,10 @@ class Controller:
             prev_t = t
             prev_error_js = error_js
             prev_error_ws = error_ws
+            prev_error_position_js = error_position_js
 
         if log:
-            self.log_results(
+            self.plot_results(
                 times,
                 actual_positions,
                 actual_velocities,
@@ -503,7 +517,7 @@ class Controller:
                 target_velocities,
                 errors_js,
                 d_errors_js
-            )
+            ) #add the error_position_js and d_error_position_js if needed
         return True
 
     def follow_ar_tag(self, tag, rate=200, timeout=None, log=False):
@@ -596,9 +610,6 @@ class PDWorkspaceVelocityController(Controller):
 
         v_ws = target_velocity + (np.matmul(self.Kp, error_ws) + np.matmul(self.Kv, d_error_ws))
 
-
-        print('v_ws', v_ws)
-
         J_pseudoinv =  self._kin.jacobian_pseudo_inverse()
 
         v_js = np.matmul(J_pseudoinv, v_ws)
@@ -663,7 +674,7 @@ class PDJointTorqueController(Controller):
         self.Kv = np.diag(Kv)
         self.controller_name = 'pd_js_torque'
 
-    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
+    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js):
         """
         makes a call to the robot to move according to it's current position and the desired position
         according to the input path and the current time. Each Controller below extends this
@@ -684,19 +695,9 @@ class PDJointTorqueController(Controller):
         M = self._kin.inertia()
 
         N = self._kin.jacobian_transpose().dot(self._kin.cart_inertia()).dot(np.array([0,0,-9.81, 0, 0, 0]).reshape(6,1))
-        
-        tau = M.dot(target_acceleration) + N - self.Kp.dot(error_js) - self.Kv.dot(d_error_js) 
-
-        print(tau)
+        tau = M.dot(target_acceleration.reshape(7,1)) + N + self.Kp.dot(error_position_js.reshape(7,1)) + self.Kv.dot(d_error_position_js.reshape(7,1)) 
 
         self._limb.set_joint_torques(joint_array_to_dict(tau, self._limb))
-
-        # raise NotImplementedError
-
-
-
-
-
 
 
 
@@ -720,7 +721,7 @@ class WorkspaceImpedanceController(Controller):
         self.Kv = np.diag(Kv)
         self.controller_name = 'pd_ws_imp'
 
-    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
+    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js):
         """
 
         Parameters
@@ -746,7 +747,7 @@ class JointspaceImpedanceController(Controller):
         self.Kv = np.diag(Kv)
         self.controller_name = 'pd_js_imp'
 
-    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws):
+    def step_control(self, target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js):
         """
         Parameters
         ----------
