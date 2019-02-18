@@ -102,7 +102,7 @@ def get_trajectory(task, current_pos, tag_pos, num_way, controller_name, limb, k
     :obj:`moveit_msgs.msg.RobotTrajectory`
     """
 
-    total_time = float(num_way) / float(rate)
+    total_time = float(float(num_way) / float(rate))
 
     if task == 'line':
         path = LinearPath(limb, kin, total_time, current_pos, tag_pos)
@@ -228,7 +228,7 @@ if __name__ == "__main__":
         tag_pos = [lookup_tag(marker) for marker in args.ar_marker]
     except:
         print('Could not find AR tag')
-        tag_pos = vec(0.75, 0.302, 0.169)
+        tag_pos = vec(0.75, 0.30, 0.17)
         #tag_pos = vec(0.65, 0.20, 0.15)
 
         # tag_pos = vec(0.70, 0.28, 0.04) #the easy one
