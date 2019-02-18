@@ -176,31 +176,60 @@ class Controller:
         errors,
         d_errors
     ):
-        print('\nLOGGING RESULTS\n')
         times = np.array(times)
+        actual_positions = np.array(actual_positions)
+        actual_velocities = np.array(actual_velocities)
+        target_positions = np.array(target_positions)
+        target_velocities = np.array(target_velocities)[:, :3, 0]
+        errors = np.array(errors)[:, :3, 0]
+        d_errors = np.array(d_errors)[:, :3, 0]
+
+        # check if works space
+        if not target_positions.shape[1] > 3:
+
+            # Find the actual workspace positions and velocities
+            actual_workspace_positions = np.zeros((len(times), 6))
+            actual_workspace_velocities = np.zeros((len(times), 6))
+
+            # Find the actual workspace positions and velocities
+            actual_workspace_positions = np.zeros((len(times), 3))
+            actual_workspace_velocities = np.zeros((len(times), 3))
+
+            for i in range(len(times)):
+                positions_dict = joint_array_to_dict(actual_positions[i], self._limb)
+                actual_workspace_positions[i] = \
+                    self._kin.forward_position_kinematics(joint_values=positions_dict)[:3]
+                actual_workspace_velocities[i] = \
+                    self._kin.jacobian(joint_values=positions_dict)[:3].dot(actual_velocities[i])
+
+            actual_positions = actual_workspace_positions
+            actual_velocities = actual_workspace_velocities
+
+        print('\nLOGGING RESULTS\n')
+
         print('times: ', times.shape)
         labels='t'
-        actual_positions = np.array(actual_positions)
+
         print('actual_positions: ', actual_positions.shape)
         for i in range(actual_positions.shape[1]):
             labels = labels + ',q' + str(i)
-        actual_velocities = np.array(actual_velocities)
+
         print('actual_velocities: ', actual_velocities.shape)
         for i in range(actual_velocities.shape[1]):
             labels = labels + ',qv' + str(i)
-        target_positions = np.array(target_positions)
+
         print('target_positions: ', target_positions.shape)
         for i in range(target_positions.shape[1]):
             labels = labels + ',q_t' + str(i)
-        target_velocities = np.array(target_velocities)
+
         print('target_velocities: ', target_velocities.shape)
         for i in range(target_velocities.shape[1]):
             labels = labels + ',qv_t' + str(i)
-        errors = np.array(errors)
+
         print('errors: ', errors.shape)
         for i in range(errors.shape[1]):
             labels = labels + ',e' + str(i)
-        d_errors = np.array(d_errors)
+
         print('d_errors: ', d_errors.shape)
         for i in range(d_errors.shape[1]):
             labels = labels + ',de' + str(i)
@@ -286,13 +315,13 @@ class Controller:
             # print len(times), actual_positions.shape()
             joint_num = len(self._limb.joint_names())
             for joint in range(joint_num):
-                
+
                 plt.subplot(joint_num,2,2*joint+1)
                 plt.plot(times, actual_positions[:,joint], label='Actual')
                 plt.plot(times, target_positions[:,joint], label='Desired')
                 plt.xlabel("Time (t)")
                 plt.ylabel(str(joint) + " pos")
-                
+
 
                 plt.subplot(joint_num,1,joint+1)
                 plt.plot(times, actual_velocities[:,joint], label='Actual')
@@ -304,7 +333,7 @@ class Controller:
 
             print "Close the plot window to continue"
             #plt.tight_layout()
-            plt.savefig(directory+self.controller_name+'_jsplot.png')
+            #plt.savefig(directory+self.controller_name+'_jsplot.png')
             # plt.show()
 
 
@@ -321,7 +350,7 @@ class Controller:
                 plt.ylabel('Velocity Errors')
             plt.legend()
             plt.tight_layout()
-            plt.savefig(directory+self.controller_name+'_err_jsplot.png')
+            #plt.savefig(directory+self.controller_name+'_err_jsplot.png')
             # plt.show()
             print "Close the plot window to continue"
 
@@ -349,7 +378,7 @@ class Controller:
 
         print "Close the plot window to continue"
         plt.tight_layout()
-        plt.savefig(directory+self.controller_name+'_wsplot.png')
+        #plt.savefig(directory+self.controller_name+'_wsplot.png')
         plt.show()
 
 
@@ -386,10 +415,8 @@ class Controller:
             actual_velocities = list()
             target_positions = list()
             target_velocities = list()
-            errors_js = list()
-            d_errors_js = list()
-            errors_ws = list()
-            d_errors_ws = list()
+            errors = list()
+            d_errors = list()
 
         # For interpolation
         max_index = len(path.joint_trajectory.points)-1
@@ -446,12 +473,13 @@ class Controller:
                 current_velocity_ws = current_velocity_ws.reshape(6,1)
 
                 error_ws = target_velocity - current_velocity_ws
+                #print('error_ws', error_ws)
                 error_ws = alpha * error_ws + (1 - alpha) * prev_error_ws # Filter
 
                 if t != prev_t:
                     d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
                 else:
-                    d_error_js = np.zeros(6)
+                    d_error_ws = np.zeros((6, 1))
 
                 prev_error_ws = prev_error_ws.reshape(6,1)
 
@@ -459,6 +487,9 @@ class Controller:
 
             else:
                 # then it's in jointspace
+                error_ws = None
+                d_error_ws = None
+                target_velocity_ws = None
 
                 error_js = target_velocity - current_velocity_js
                 error_js = alpha * error_js + (1 - alpha) * prev_error_js # Filter
@@ -471,9 +502,10 @@ class Controller:
                     d_error_js = (error_js - prev_error_js) / (t - prev_t)
                     d_error_position_js = (error_position_js - prev_error_position_js) / (t - prev_t)
                 else:
-                    d_error_js = np.zeros(7)
-                    d_error_position_js = np.zeros(7)
+                    d_error_js = np.zeros((7, 1))
+                    d_error_position_js = np.zeros((7, 1))
 
+                '''
                 target_velocity_ws = np.matmul(jacobian, target_velocity)
                 error_ws = target_velocity_ws - current_velocity_ws
                 error_ws = alpha * error_ws + (1 - alpha) * prev_error_ws # Filter
@@ -481,7 +513,9 @@ class Controller:
                 if t != prev_t:
                     d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
                 else:
-                    d_error_ws = np.zeros(7)
+                    d_error_ws = np.zeros((6, 1))
+                '''
+
 
             # For plotting
             if log:
@@ -490,8 +524,12 @@ class Controller:
                 actual_velocities.append(current_velocity_js)
                 target_positions.append(target_position)
                 target_velocities.append(target_velocity)
-                errors_js.append(error_js)
-                d_errors_js.append(d_error_js)
+                if len(target_velocity) == 6: # workspace
+                    errors.append(error_ws)
+                    d_errors.append(d_error_ws)
+                else: # jointspace
+                    errors.append(error_js)
+                    d_errors.append(d_error_js)
 
             # Run controller
             self.step_control(target_position, target_velocity, target_acceleration, error_js, d_error_js, error_ws, d_error_ws, current_position_js, current_velocity_js, current_velocity_ws, error_position_js, d_error_position_js)
@@ -515,9 +553,18 @@ class Controller:
                 actual_velocities,
                 target_positions,
                 target_velocities,
-                errors_js,
-                d_errors_js
+                errors,
+                d_errors
             ) #add the error_position_js and d_error_position_js if needed
+            self.log_results(
+                times,
+                actual_positions,
+                actual_velocities,
+                target_positions,
+                target_velocities,
+                errors,
+                d_errors
+            )
         return True
 
     def follow_ar_tag(self, tag, rate=200, timeout=None, log=False):
@@ -613,7 +660,6 @@ class PDWorkspaceVelocityController(Controller):
         J_pseudoinv =  self._kin.jacobian_pseudo_inverse()
 
         v_js = np.matmul(J_pseudoinv, v_ws)
-
         self._limb.set_joint_velocities(joint_array_to_dict(v_js, self._limb))
 
 class PDJointVelocityController(Controller):
@@ -695,7 +741,7 @@ class PDJointTorqueController(Controller):
         M = self._kin.inertia()
 
         N = self._kin.jacobian_transpose().dot(self._kin.cart_inertia()).dot(np.array([0,0,-9.81, 0, 0, 0]).reshape(6,1))
-        tau = M.dot(target_acceleration.reshape(7,1)) + N + self.Kp.dot(error_position_js.reshape(7,1)) + self.Kv.dot(d_error_position_js.reshape(7,1)) 
+        tau = M.dot(target_acceleration.reshape(7,1)) + N + self.Kp.dot(error_position_js.reshape(7,1)) + self.Kv.dot(d_error_position_js.reshape(7,1))
 
         self._limb.set_joint_torques(joint_array_to_dict(tau, self._limb))
 
