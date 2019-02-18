@@ -138,10 +138,9 @@ def get_controller(controller_name):
         controller = PDWorkspaceVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'jointspace':
         # YOUR CODE HERE
-        # Kp = np.array([0.5, 0.5, 1, 0.5, 1, 0.5, 0.5])
+        Kp = np.array([10,10,10,10,10,10,10])
         # Kv =  np.ones(7) * 0.0
-        Kp = np.ones(7) * 0.5
-        Kv =  np.ones(7) * 0.0
+        Kv =  np.ones(7) * 0
         controller = PDJointVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'torque':
         # YOUR CODE HERE
@@ -189,7 +188,7 @@ if __name__ == "__main__":
         """after how many seconds should the controller terminate if it hasn\'t already.
         Default: None"""
     )
-    parser.add_argument('-num_way', type=int, default=50, help=
+    parser.add_argument('-num_way', type=int, default=100, help=
         'How many waypoints for the :obj:`moveit_msgs.msg.RobotTrajectory`.  Default: 300'
     )
     parser.add_argument('--moveit', action='store_true', help=
