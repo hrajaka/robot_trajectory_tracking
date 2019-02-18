@@ -547,8 +547,6 @@ class PDWorkspaceVelocityController(Controller):
 
         self._limb.set_joint_velocities(joint_array_to_dict(v_js, self._limb))
 
-        # raise NotImplementedError
-
 class PDJointVelocityController(Controller):
     """
     Look at the comments on the Controller class above.  The difference between this controller and the
@@ -591,7 +589,6 @@ class PDJointVelocityController(Controller):
         v = target_velocity + (np.matmul(self.Kp, error_js) + np.matmul(self.Kv, d_error_js))
 
         self._limb.set_joint_velocities(joint_array_to_dict(v, self._limb))
-        #raise NotImplementedError
 
 class PDJointTorqueController(Controller):
     def __init__(self, limb, kin, Kp, Kv):
@@ -625,7 +622,18 @@ class PDJointTorqueController(Controller):
         target_velocity: 7x' :obj:`numpy.ndarray` of desired velocities
         target_acceleration: 7x' :obj:`numpy.ndarray` of desired accelerations
         """
-        raise NotImplementedError
+
+        M = self._kin.inertia()
+
+        N = self._kin.jacobian_transpose().dot(self._kin.cart_inertia()).dot(np.array([0,0,-9.81, 0, 0, 0]).reshape(6,1))
+        
+        tau = M.dot(target_acceleration) + N - self.Kp.dot(error_js) - self.Kv.dot(d_error_js) 
+
+        print(tau)
+
+        self._limb.set_joint_torques(joint_array_to_dict(tau, self._limb))
+
+        # raise NotImplementedError
 
 
 

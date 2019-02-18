@@ -35,30 +35,30 @@ class MotionPath:
         self.current_pos = current_pos
         self.target_pos = target_pos
 
-        times = np.linspace(0, total_time, 100)
-        pos = np.array([0, 0, 0])
-        vel = np.array([0, 0, 0])
-        acc = np.array([0, 0, 0])
-        for t in times:
-            pos = np.vstack((pos, self.target_position(t)))
-            vel = np.vstack((vel, self.target_velocity(t)))
-            acc = np.vstack((acc, self.target_acceleration(t)))
+        # times = np.linspace(0, total_time, 100)
+        # pos = np.array([0, 0, 0])
+        # vel = np.array([0, 0, 0])
+        # acc = np.array([0, 0, 0])
+        # for t in times:
+        #     pos = np.vstack((pos, self.target_position(t)))
+        #     vel = np.vstack((vel, self.target_velocity(t)))
+        #     acc = np.vstack((acc, self.target_acceleration(t)))
 
-        pos = pos[1:, :]
-        vel = vel[1:, :]
-        acc = acc[1:, :]
+        # pos = pos[1:, :]
+        # vel = vel[1:, :]
+        # acc = acc[1:, :]
 
-        plt.figure()
-        plt.grid(True)
-        plt.title('Path ({})'.format(total_time))
-        plt.xlabel('x')
-        plt.ylabel('y')
-        plt.scatter(pos[:, 0], pos[:, 1], color='r', marker='.')
-        plt.axis('equal')
-        plt.axvline(color='k')
-        plt.axhline(color='k')
+        # plt.figure()
+        # plt.grid(True)
+        # plt.title('Path ({})'.format(total_time))
+        # plt.xlabel('x')
+        # plt.ylabel('y')
+        # plt.scatter(pos[:, 0], pos[:, 1], color='r', marker='.')
+        # plt.axis('equal')
+        # plt.axvline(color='k')
+        # plt.axhline(color='k')
 
-        plt.show()
+        # plt.show()
 
         # plt.figure()
         # plt.grid(True)
@@ -215,9 +215,6 @@ class MotionPath:
             self.total_time + 1)
         points.append(extra_point)
 
-        #print('Generated robot trajectory:')
-        #print(points)
-
         traj.points = points
         traj.header.frame_id = 'base'
         robot_traj = RobotTrajectory()
@@ -301,12 +298,10 @@ class LinearPath(MotionPath):
 
         Parameters
         ----------
-        ????? You're going to have to fill these in how you see fit
         """
         MotionPath.__init__(self, limb, kin, total_time,
                             current_pos, target_pos)
 
-        #raise NotImplementedError
 
     def target_position(self, time):
         """
@@ -511,36 +506,8 @@ class MultiplePaths(MotionPath):
         while i < len(self.start_times)-1 and time > self.start_times[i+1]  :
             i = i+1
 
-
-
         return self.linear_paths[i].target_position(time-self.start_times[i])
 
-        # t_segment = float(self.total_time) / float(len(self.pos))
-        # segment = min(int(time / t_segment), len(self.pos)-1)
-        # pos_start = self.pos[segment]
-        # if segment < len(self.pos) - 1:
-        #     x = segment+1
-        #     pos_end = self.pos[(segment+1)]
-        # else:
-        #     x = 1
-        #     pos_end = self.pos[1]
-        # t = time - segment * t_segment
-
-        # cruise_speed = (pos_end - pos_start) / t_segment * 10./9
-
-        # print(t, pos_start, pos_end)
-
-        # if t <= (1./10)*t_segment:
-        #     return 10*cruise_speed*0.5*t**2/t_segment
-        # elif t <= (9./10)*t_segment:
-        #     return 10*cruise_speed*0.5*(t_segment/10)**2/t_segment + cruise_speed*(t-t_segment/10)
-        # else:
-        #     return 10*cruise_speed*0.5*(t_segment/10)**2/t_segment + cruise_speed*(8*t_segment/10) + 10*cruise_speed*(t-0.5*t*t/t_segment - 9 * t_segment/10 + 0.5*(9*t_segment/10)**2/t_segment) 
-
-
-
-
-        #return (pos_end - pos_start) / t_segment * t + pos_start
 
     def target_velocity(self, time):
         """
@@ -564,25 +531,6 @@ class MultiplePaths(MotionPath):
 
         return self.linear_paths[i].target_velocity(time-self.start_times[i])
 
-        # t_segment = self.total_time / len(self.pos)
-        # segment = min(int(time / t_segment), len(self.pos)-1)
-        # pos_start = self.pos[segment]
-        # if segment < len(self.pos) - 1:
-        #     pos_end = self.pos[(segment+1)]
-        # else:
-        #     pos_end = self.pos[1]
-        
-        # #return (pos_end - pos_start) / t_segment
-
-        # t = time - segment * t_segment
-        # cruise_speed = (pos_end - pos_start) / t_segment * 10./9
-
-        # if t <= (1./10)*t_segment:
-        #     return 10*t/t_segment*cruise_speed
-        # elif t <= (9./10)*t_segment:
-        #     return cruise_speed
-        # else:
-        #     return (1 - 10*(t - (9./10)*t_segment)/t_segment )*cruise_speed
 
     def target_acceleration(self, time):
         """
@@ -598,7 +546,6 @@ class MultiplePaths(MotionPath):
         3x' :obj:`numpy.ndarray`
             desired acceleration in workspace coordinates of the end effector
         """
-        #return vec(0, 0, 0)
 
         i = 0 #i is the 'section' we're in
         while i < len(self.start_times)-1 and time > self.start_times[i+1]  :
@@ -606,156 +553,4 @@ class MultiplePaths(MotionPath):
 
 
         return self.linear_paths[i].target_acceleration(time-self.start_times[i])
-
-        # cruise_speed = (self.target_pos - self.current_pos) / self.total_time * 10./9
-
-        
-        # t_segment = self.total_time / len(self.pos)
-        # segment = min(int(time / t_segment), len(self.pos)-1)
-        # pos_start = self.pos[segment]
-        # if segment < len(self.pos) - 1:
-        #     pos_end = self.pos[(segment+1)]
-        # else:
-        #     pos_end = self.pos[1]
-
-        # t = time - segment * t_segment
-
-
-        # if t <= (1./10)*t_segment:
-        #     return cruise_speed / t_segment
-        # elif t <= (9./10)*t_segment:
-        #     return np.array([0,0,0])
-        # else:
-        #     return -1*cruise_speed / t_segment
-
-
-
-
-# class MultiplePaths(MotionPath):
-#     """
-#     Remember to call the constructor of MotionPath
-
-#     You can implement multiple paths a couple ways.  The way I chose when I took
-#     the class was to create several different paths and pass those into the
-#     MultiplePaths object, which would determine when to go onto the next path.
-#     """
-
-#     def __init__(self, limb, kin, total_time, current_pos, positions):
-#         self.pos = [current_pos]
-#         self.pos = self.pos+positions
-
-#         MotionPath.__init__(self, limb, kin, total_time, current_pos, positions[0])
-
-
-#     def target_position(self, time):
-#         """
-#         Returns where the arm end effector should be at time t
-
-#         Parameters
-#         ----------
-#         time : float
-
-#         Returns
-#         -------
-#         3x' :obj:`numpy.ndarray`
-#             desired position in workspace coordinates of the end effector
-#         """
-#         t_segment = float(self.total_time) / float(len(self.pos))
-#         segment = min(int(time / t_segment), len(self.pos)-1)
-#         pos_start = self.pos[segment]
-#         if segment < len(self.pos) - 1:
-#             x = segment+1
-#             pos_end = self.pos[(segment+1)]
-#         else:
-#             x = 1
-#             pos_end = self.pos[1]
-#         t = time - segment * t_segment
-
-#         cruise_speed = (pos_end - pos_start) / t_segment * 10./9
-
-#         print(t, pos_start, pos_end)
-
-#         if t <= (1./10)*t_segment:
-#             return 10*cruise_speed*0.5*t**2/t_segment
-#         elif t <= (9./10)*t_segment:
-#             return 10*cruise_speed*0.5*(t_segment/10)**2/t_segment + cruise_speed*(t-t_segment/10)
-#         else:
-#             return 10*cruise_speed*0.5*(t_segment/10)**2/t_segment + cruise_speed*(8*t_segment/10) + 10*cruise_speed*(t-0.5*t*t/t_segment - 9 * t_segment/10 + 0.5*(9*t_segment/10)**2/t_segment) 
-
-
-
-
-#         #return (pos_end - pos_start) / t_segment * t + pos_start
-
-#     def target_velocity(self, time):
-#         """
-#         Returns the arm's desired velocity in workspace coordinates
-#         at time t
-
-#         Parameters
-#         ----------
-#         time : float
-
-#         Returns
-#         -------
-#         3x' :obj:`numpy.ndarray`
-#             desired velocity in workspace coordinates of the end effector
-#         """
-
-#         t_segment = self.total_time / len(self.pos)
-#         segment = min(int(time / t_segment), len(self.pos)-1)
-#         pos_start = self.pos[segment]
-#         if segment < len(self.pos) - 1:
-#             pos_end = self.pos[(segment+1)]
-#         else:
-#             pos_end = self.pos[1]
-        
-#         #return (pos_end - pos_start) / t_segment
-
-#         t = time - segment * t_segment
-#         cruise_speed = (pos_end - pos_start) / t_segment * 10./9
-
-#         if t <= (1./10)*t_segment:
-#             return 10*t/t_segment*cruise_speed
-#         elif t <= (9./10)*t_segment:
-#             return cruise_speed
-#         else:
-#             return (1 - 10*(t - (9./10)*t_segment)/t_segment )*cruise_speed
-
-#     def target_acceleration(self, time):
-#         """
-#         Returns the arm's desired acceleration in workspace coordinates
-#         at time t
-
-#         Parameters
-#         ----------
-#         time : float
-
-#         Returns
-#         -------
-#         3x' :obj:`numpy.ndarray`
-#             desired acceleration in workspace coordinates of the end effector
-#         """
-#         #return vec(0, 0, 0)
-
-#         cruise_speed = (self.target_pos - self.current_pos) / self.total_time * 10./9
-
-        
-#         t_segment = self.total_time / len(self.pos)
-#         segment = min(int(time / t_segment), len(self.pos)-1)
-#         pos_start = self.pos[segment]
-#         if segment < len(self.pos) - 1:
-#             pos_end = self.pos[(segment+1)]
-#         else:
-#             pos_end = self.pos[1]
-
-#         t = time - segment * t_segment
-
-
-#         if t <= (1./10)*t_segment:
-#             return cruise_speed / t_segment
-#         elif t <= (9./10)*t_segment:
-#             return np.array([0,0,0])
-#         else:
-#             return -1*cruise_speed / t_segment
 
