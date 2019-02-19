@@ -109,7 +109,7 @@ def get_trajectory(task, current_pos, tag_pos, num_way, controller_name, limb, k
         # path.plot_me()
     elif task == 'circle':
         path = CircularPath(limb, kin, total_time, current_pos, tag_pos)
-        # path.plot_me()
+        #path.plot_me()
 
     elif task == 'square':
         positions = [current_pos]
@@ -159,8 +159,8 @@ def get_controller(controller_name):
         controller = PDJointVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'torque':
         # YOUR CODE HERE
-        Kp = np.ones(7) * 100
-        Kv = np.ones(7) * 0
+        Kp = np.array([150, 150, 150, 150, 1000, 1000, 1000])
+        Kv = np.array([25,  25,  25,  25,  50, 50, 50])
         controller = PDJointTorqueController(limb, kin, Kp, Kv)
     elif controller_name == 'open_loop':
         controller = FeedforwardJointVelocityController(limb, kin)
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     parser.add_argument('-arm', '-a', type=str, default='left', help=
         'Options: left, right.  Default: left'
     )
-    parser.add_argument('-rate', type=int, default=200, help="""
+    parser.add_argument('-rate', type=int, default=50, help="""
         This specifies how many ms between loops.  It is important to use a rate
         and not a regular while loop because you want the loop to refresh at a
         constant rate, otherwise you would have to tune your PD parameters if
@@ -203,7 +203,7 @@ if __name__ == "__main__":
         """after how many seconds should the controller terminate if it hasn\'t already.
         Default: None"""
     )    
-    parser.add_argument('-num_way', type=int, default=1100, help=
+    parser.add_argument('-num_way', type=int, default=100, help=
 
         'How many waypoints for the :obj:`moveit_msgs.msg.RobotTrajectory`.  Default: 300'
     )

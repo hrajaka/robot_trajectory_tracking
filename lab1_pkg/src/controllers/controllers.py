@@ -319,11 +319,11 @@ class Controller:
                 plt.subplot(joint_num,2,2*joint+1)
                 plt.plot(times, actual_positions[:,joint], label='Actual')
                 plt.plot(times, target_positions[:,joint], label='Desired')
-                plt.xlabel("Time (t)")
+                #plt.xlabel("Time (t)")
                 plt.ylabel(str(joint) + " pos")
 
 
-                plt.subplot(joint_num,1,joint+1)
+                plt.subplot(joint_num,2,2*joint+2)
                 plt.plot(times, actual_velocities[:,joint], label='Actual')
                 plt.plot(times, target_velocities[:,joint], label='Desired')
                 #plt.plot(times, errors[:,joint], label='e')
@@ -337,6 +337,7 @@ class Controller:
             # plt.show()
 
 
+            '''
             # error plots
             plt.figure()
             plt.grid(True)
@@ -353,6 +354,7 @@ class Controller:
             #plt.savefig(directory+self.controller_name+'_err_jsplot.png')
             # plt.show()
             print "Close the plot window to continue"
+            '''
 
 
         else:
@@ -494,8 +496,10 @@ class Controller:
                 error_js = target_velocity - current_velocity_js
                 error_js = alpha * error_js + (1 - alpha) * prev_error_js # Filter
 
+
+                alpha_pos = 1
                 error_position_js = target_position - current_position_js
-                #error_position_js = alpha * error_position_js + (1 - alpha) * prev_error_position_js # Filter
+                error_position_js = alpha_pos * error_position_js + (1 - alpha_pos) * prev_error_position_js # Filter
 
 
                 if t != prev_t:
@@ -556,6 +560,7 @@ class Controller:
                 errors,
                 d_errors
             ) #add the error_position_js and d_error_position_js if needed
+            '''
             self.log_results(
                 times,
                 actual_positions,
@@ -565,6 +570,7 @@ class Controller:
                 errors,
                 d_errors
             )
+            '''
         return True
 
     def follow_ar_tag(self, tag, rate=200, timeout=None, log=False):
@@ -661,6 +667,7 @@ class PDWorkspaceVelocityController(Controller):
 
         v_js = np.matmul(J_pseudoinv, v_ws)
 
+
         self._limb.set_joint_velocities(joint_array_to_dict(v_js, self._limb))
 
 class PDJointVelocityController(Controller):
@@ -742,7 +749,7 @@ class PDJointTorqueController(Controller):
 
         M = self._kin.inertia()
 
-        N = self._kin.jacobian_transpose().dot(self._kin.cart_inertia()).dot(np.array([0,0,-9.81, 0, 0, 0]).reshape(6,1))
+        N = self._kin.jacobian_transpose().dot(self._kin.cart_inertia()).dot(np.array([0,0,9.81, 0, 0, 0]).reshape(6,1))
         tau = M.dot(target_acceleration.reshape(7,1)) + N + self.Kp.dot(error_position_js.reshape(7,1)) + self.Kv.dot(d_error_position_js.reshape(7,1))
 
         self._limb.set_joint_torques(joint_array_to_dict(tau, self._limb))
