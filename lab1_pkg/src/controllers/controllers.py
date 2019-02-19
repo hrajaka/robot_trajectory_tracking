@@ -660,6 +660,7 @@ class PDWorkspaceVelocityController(Controller):
         J_pseudoinv =  self._kin.jacobian_pseudo_inverse()
 
         v_js = np.matmul(J_pseudoinv, v_ws)
+
         self._limb.set_joint_velocities(joint_array_to_dict(v_js, self._limb))
 
 class PDJointVelocityController(Controller):
@@ -701,7 +702,8 @@ class PDJointVelocityController(Controller):
         """
 
 
-        v = target_velocity + (np.matmul(self.Kp, error_js) + np.matmul(self.Kv, d_error_js))
+        v = target_velocity + (np.matmul(self.Kp, error_js.reshape(7,)) + np.matmul(self.Kv, d_error_js.reshape(7,)))
+
 
         self._limb.set_joint_velocities(joint_array_to_dict(v, self._limb))
 
