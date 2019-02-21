@@ -159,8 +159,10 @@ def get_controller(controller_name):
         controller = PDJointVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'torque':
         # YOUR CODE HERE
-        Kp = np.array([150, 150, 150, 150, 1000, 1000, 1000])
-        Kv = np.array([25,  25,  25,  25,  50, 50, 50])
+        #Kp = np.array([150, 150, 150, 150, 1000, 1000, 1000])
+        #Kv = np.array([25,  25,  25,  25,  50, 50, 50])
+        Kp = np.array([100, 100, 100, 100, 100, 100, 100])*1.5
+        Kv = np.array([25,  25,  25,  25,  25,  25,  25])*0.75
         controller = PDJointTorqueController(limb, kin, Kp, Kv)
     elif controller_name == 'open_loop':
         controller = FeedforwardJointVelocityController(limb, kin)

@@ -749,8 +749,10 @@ class PDJointTorqueController(Controller):
 
         M = self._kin.inertia()
 
-        N = self._kin.jacobian_transpose().dot(self._kin.cart_inertia()).dot(np.array([0,0,9.81, 0, 0, 0]).reshape(6,1))
-        tau = M.dot(target_acceleration.reshape(7,1)) + N + self.Kp.dot(error_position_js.reshape(7,1)) + self.Kv.dot(d_error_position_js.reshape(7,1))
+        N = self._kin.jacobian_transpose().dot(self._kin.cart_inertia()).dot(np.array([0,0,-9.81, 0, 0, 0]).reshape(6,1))
+        # tau = M.dot(target_acceleration.reshape(7,1)) + N + self.Kp.dot(error_position_js.reshape(7,1)) + self.Kv.dot(d_error_position_js.reshape(7,1))
+
+        tau = M.dot(target_acceleration.reshape(7,1)) + N + np.dot(M, self.Kp.dot(error_position_js.reshape(7,1))) + np.dot(M, self.Kv.dot(d_error_position_js.reshape(7,1)))
 
         self._limb.set_joint_torques(joint_array_to_dict(tau, self._limb))
 
