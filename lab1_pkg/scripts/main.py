@@ -158,9 +158,6 @@ def get_controller(controller_name):
 
         controller = PDJointVelocityController(limb, kin, Kp, Kv)
     elif controller_name == 'torque':
-        # YOUR CODE HERE
-        #Kp = np.array([150, 150, 150, 150, 1000, 1000, 1000])
-        #Kv = np.array([25,  25,  25,  25,  50, 50, 50])
         Kp = np.array([100, 100, 100, 100, 100, 100, 100])*1.5
         Kv = np.array([25,  25,  25,  25,  25,  25,  25])*0.75
         controller = PDJointTorqueController(limb, kin, Kp, Kv)
@@ -231,15 +228,13 @@ if __name__ == "__main__":
     current_pos = lookup_current_pos(args.arm)[0]
     print('Current position:', current_pos)
 
-    # ADD COMMENT EHRE
+    # ADD COMMENT HERE
     try:
         tag_pos = [lookup_tag(marker) for marker in args.ar_marker]
     except:
         print('Could not find AR tag')
         tag_pos = vec(0.75, 0.30, 0.17)
-        #tag_pos = vec(0.65, 0.20, 0.15)
 
-        # tag_pos = vec(0.70, 0.28, 0.04) #the easy one
     print('Target position:', tag_pos)
 
     # Get an appropriate RobotTrajectory for the task (circular, linear, or square)

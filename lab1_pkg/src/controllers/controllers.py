@@ -331,7 +331,7 @@ class Controller:
                 #plt.xlabel("Time (t)")
                 plt.ylabel(str(joint) + " vel")
 
-            print "Close the plot window to continue"
+            #print "Close the plot window to continue"
             #plt.tight_layout()
             #plt.savefig(directory+self.controller_name+'_jsplot.png')
             # plt.show()
@@ -508,18 +508,6 @@ class Controller:
                 else:
                     d_error_js = np.zeros((7, 1))
                     d_error_position_js = np.zeros((7, 1))
-
-                '''
-                target_velocity_ws = np.matmul(jacobian, target_velocity)
-                error_ws = target_velocity_ws - current_velocity_ws
-                error_ws = alpha * error_ws + (1 - alpha) * prev_error_ws # Filter
-
-                if t != prev_t:
-                    d_error_ws = (error_ws - prev_error_ws) / (t - prev_t)
-                else:
-                    d_error_ws = np.zeros((6, 1))
-                '''
-
 
             # For plotting
             if log:
